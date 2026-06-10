@@ -11,7 +11,9 @@
             <i class="fa-solid fa-cloud-sun text-lg leading-none"></i>
           </span>
           <span>
-            <span class="block text-lg font-semibold tracking-tight text-slate-800">
+            <span
+              class="block text-lg font-semibold tracking-tight text-slate-800"
+            >
               The Local Weather
             </span>
             <span class="block text-sm text-sky-700/80">
@@ -77,7 +79,9 @@
         :modal-active="modalActive"
         @close="modalActive = false"
       >
-        <div class="space-y-4 rounded-[22px] border border-white/60 bg-white/35 p-5 shadow-inner shadow-white/30">
+        <div
+          class="space-y-4 rounded-[22px] border border-white/60 bg-white/35 p-5 shadow-inner shadow-white/30"
+        >
           <span
             class="inline-flex items-center rounded-full border border-sky-200 bg-sky-100/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-sky-700"
           >

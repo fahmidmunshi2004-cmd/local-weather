@@ -37,7 +37,12 @@ import Sidenavigation from "./components/Sidenavigation.vue";
   left: 5%;
   height: 180px;
   width: 180px;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.85) 0%, rgba(186, 230, 253, 0.18) 72%, transparent 100%);
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.85) 0%,
+    rgba(186, 230, 253, 0.18) 72%,
+    transparent 100%
+  );
 }
 
 .sky-orb-two {
@@ -45,7 +50,12 @@ import Sidenavigation from "./components/Sidenavigation.vue";
   right: 4%;
   height: 220px;
   width: 220px;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.68) 0%, rgba(125, 211, 252, 0.2) 72%, transparent 100%);
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.68) 0%,
+    rgba(125, 211, 252, 0.2) 72%,
+    transparent 100%
+  );
   animation-delay: -10s;
 }
 
@@ -54,7 +64,12 @@ import Sidenavigation from "./components/Sidenavigation.vue";
   left: 34%;
   height: 140px;
   width: 140px;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.78) 0%, rgba(191, 219, 254, 0.16) 68%, transparent 100%);
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.78) 0%,
+    rgba(191, 219, 254, 0.16) 68%,
+    transparent 100%
+  );
   animation-delay: -16s;
 }
 
