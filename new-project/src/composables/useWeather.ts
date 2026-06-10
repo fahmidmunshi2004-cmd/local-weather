@@ -200,7 +200,7 @@ const getWeatherVisual = (code: number, isDay = true) => {
     return {
       label: "Overcast",
       icon: "fa-solid fa-cloud",
-      iconColor: "text-slate-300",
+      iconColor: "text-amber-400",
     };
   }
 
@@ -247,7 +247,7 @@ const getWeatherVisual = (code: number, isDay = true) => {
   return {
     label: "Mixed weather",
     icon: "fa-solid fa-cloud",
-    iconColor: "text-slate-300",
+    iconColor: "text-amber-400",
   };
 };
 

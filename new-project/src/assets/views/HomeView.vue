@@ -12,33 +12,45 @@
           </span>
 
           <div class="flex flex-wrap items-center gap-3 text-sm text-slate-600">
-            <span class="inline-flex items-center gap-2 rounded-full border border-sky-100 bg-white/80 px-3 py-2">
+            <span
+              class="inline-flex items-center gap-2 rounded-full border border-sky-100 bg-white/80 px-3 py-2"
+            >
               <i class="fa-regular fa-clock text-amber-500"></i>
               {{ liveClock || "Loading time..." }}
             </span>
-            <span class="inline-flex items-center gap-2 rounded-full border border-sky-100 bg-white/80 px-3 py-2">
+            <span
+              class="inline-flex items-center gap-2 rounded-full border border-sky-100 bg-white/80 px-3 py-2"
+            >
               <i class="fa-regular fa-calendar text-sky-500"></i>
               {{ liveDate || "Loading date..." }}
             </span>
-            <span class="inline-flex items-center gap-2 rounded-full border border-sky-100 bg-white/80 px-3 py-2">
+            <span
+              class="inline-flex items-center gap-2 rounded-full border border-sky-100 bg-white/80 px-3 py-2"
+            >
               <i class="fa-solid fa-rotate text-emerald-500"></i>
               Updated {{ lastUpdated || "now" }}
             </span>
           </div>
 
           <div v-if="showSkeleton" class="space-y-4">
+            <div class="inline-flex items-center gap-2 rounded-full border border-sky-200 bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-700">
+              <span class="loader-dot"></span>
+              Loading live weather
+            </div>
             <div class="skeleton h-12 w-full max-w-2xl rounded-2xl"></div>
             <div class="skeleton h-5 w-full max-w-xl rounded-xl"></div>
             <div class="skeleton h-5 w-4/5 max-w-lg rounded-xl"></div>
           </div>
 
           <div v-else class="space-y-4">
-            <h1 class="max-w-2xl text-4xl font-bold tracking-tight text-slate-800 sm:text-5xl">
+            <h1
+              class="max-w-2xl text-4xl font-bold tracking-tight text-slate-800 sm:text-5xl"
+            >
               {{ weather?.heroTitle ?? "Loading live weather..." }}
             </h1>
             <p class="max-w-xl text-base leading-7 text-slate-600 sm:text-lg">
-              Search any city worldwide for live conditions, local time,
-              hourly updates, and a cleaner multi-day forecast.
+              Search any city worldwide for live conditions, local time, hourly
+              updates, and a cleaner multi-day forecast.
             </p>
           </div>
         </div>
@@ -78,7 +90,8 @@
                       {{ city.name }}
                     </span>
                     <span class="block text-sm text-slate-500">
-                      {{ city.admin1 ? `${city.admin1}, ` : "" }}{{ city.country }}
+                      {{ city.admin1 ? `${city.admin1}, ` : ""
+                      }}{{ city.country }}
                     </span>
                   </span>
                 </button>
@@ -131,9 +144,13 @@
             </div>
           </div>
 
-          <div class="rounded-[26px] border border-white/20 bg-white/12 p-5 backdrop-blur-sm">
+          <div
+            class="rounded-[26px] border border-white/20 bg-white/12 p-5 backdrop-blur-sm"
+          >
             <div class="flex items-center justify-between">
-              <h2 class="text-lg font-semibold text-slate-800">Hourly Weather</h2>
+              <h2 class="text-lg font-semibold text-slate-800">
+                Hourly Weather
+              </h2>
               <span class="text-sm text-slate-500">Next 6 hours</span>
             </div>
 
@@ -146,9 +163,15 @@
                 :key="`hour-${item}`"
                 class="rounded-2xl border border-sky-100 bg-white px-3 py-4 text-center shadow-lg shadow-sky-200/40"
               >
-                <div class="skeleton mx-auto h-4 w-10 rounded-lg bg-sky-100"></div>
-                <div class="skeleton mx-auto mt-4 h-5 w-5 rounded-full bg-sky-100"></div>
-                <div class="skeleton mx-auto mt-4 h-6 w-12 rounded-lg bg-sky-100"></div>
+                <div
+                  class="skeleton mx-auto h-4 w-10 rounded-lg bg-sky-100"
+                ></div>
+                <div
+                  class="skeleton mx-auto mt-4 h-5 w-5 rounded-full bg-sky-100"
+                ></div>
+                <div
+                  class="skeleton mx-auto mt-4 h-6 w-12 rounded-lg bg-sky-100"
+                ></div>
               </div>
             </div>
 
@@ -161,9 +184,13 @@
                 :key="slot.time"
                 class="rounded-2xl border border-sky-100 bg-white px-3 py-4 text-center shadow-lg shadow-sky-200/40"
               >
-                <p class="text-sm font-semibold text-slate-500">{{ slot.time }}</p>
+                <p class="text-sm font-semibold text-slate-500">
+                  {{ slot.time }}
+                </p>
                 <i :class="`${slot.icon} mt-4 text-xl ${slot.iconColor}`"></i>
-                <p class="mt-4 text-lg font-semibold text-slate-800">{{ slot.temp }}</p>
+                <p class="mt-4 text-lg font-semibold text-slate-800">
+                  {{ slot.temp }}
+                </p>
               </div>
             </div>
           </div>
@@ -219,7 +246,9 @@
               <p class="mt-2 text-slate-600">
                 {{ weather?.summary ?? "Fetching live conditions..." }}
               </p>
-              <div class="mt-3 flex flex-wrap items-center gap-2 text-sm text-sky-700">
+              <div
+                class="mt-3 flex flex-wrap items-center gap-2 text-sm text-sky-700"
+              >
                 <span>{{ liveClock || "--" }}</span>
                 <span>&middot;</span>
                 <span>{{ liveDate || "--" }}</span>
@@ -228,7 +257,11 @@
             <span
               class="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-100 to-sky-100"
             >
-              <i :class="`${weather?.todayIcon ?? 'fa-solid fa-cloud'} text-2xl ${weather?.todayIconColor ?? 'text-sky-500'}`"></i>
+              <i
+                :class="`${
+                  weather?.todayIcon ?? 'fa-solid fa-cloud'
+                } text-2xl ${weather?.todayIconColor ?? 'text-sky-500'}`"
+              ></i>
             </span>
           </div>
 
@@ -250,7 +283,9 @@
           <div class="mt-4 rounded-2xl border border-sky-200 bg-sky-100/85 p-4">
             <div class="flex items-center justify-between">
               <span class="text-sm text-sky-700">Comfort Index</span>
-              <span class="rounded-full bg-white/70 px-2 py-1 text-xs text-sky-700">
+              <span
+                class="rounded-full bg-white/70 px-2 py-1 text-xs text-sky-700"
+              >
                 {{ weather?.comfortLabel ?? "Loading" }}
               </span>
             </div>
@@ -368,21 +403,57 @@ const handleSearchInput = (event: Event) => {
 .skeleton {
   background: linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0.28) 0%,
-    rgba(255, 255, 255, 0.62) 50%,
-    rgba(255, 255, 255, 0.28) 100%
+    rgba(219, 234, 254, 0.65) 0%,
+    rgba(255, 255, 255, 0.98) 35%,
+    rgba(125, 211, 252, 0.52) 50%,
+    rgba(255, 255, 255, 0.98) 65%,
+    rgba(219, 234, 254, 0.65) 100%
   );
-  background-size: 200% 100%;
-  animation: shimmer 1.2s ease-in-out infinite;
+  background-size: 240% 100%;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.65);
+  animation: shimmer 1s linear infinite, skeletonPulse 1.8s ease-in-out infinite;
+}
+
+.loader-dot {
+  height: 0.65rem;
+  width: 0.65rem;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #38bdf8, #fbbf24);
+  animation: loaderBlink 0.9s ease-in-out infinite alternate;
 }
 
 @keyframes shimmer {
   0% {
-    background-position: 200% 0;
+    background-position: 220% 0;
   }
 
   100% {
-    background-position: -200% 0;
+    background-position: -220% 0;
+  }
+}
+
+@keyframes skeletonPulse {
+  0%,
+  100% {
+    opacity: 0.75;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.01);
+  }
+}
+
+@keyframes loaderBlink {
+  0% {
+    opacity: 0.45;
+    transform: scale(0.85);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1.1);
   }
 }
 </style>
