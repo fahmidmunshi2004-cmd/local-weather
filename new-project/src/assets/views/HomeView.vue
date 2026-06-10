@@ -404,14 +404,16 @@ const handleSearchInput = (event: Event) => {
   background: linear-gradient(
     90deg,
     rgba(219, 234, 254, 0.65) 0%,
-    rgba(255, 255, 255, 0.98) 35%,
+    rgba(255, 255, 255, 0.94) 35%,
     rgba(125, 211, 252, 0.52) 50%,
-    rgba(255, 255, 255, 0.98) 65%,
+    rgba(255, 255, 255, 0.94) 65%,
     rgba(219, 234, 254, 0.65) 100%
   );
   background-size: 240% 100%;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.65);
-  animation: shimmer 1s linear infinite, skeletonPulse 1.8s ease-in-out infinite;
+  will-change: background-position, opacity, transform;
+  animation: shimmer 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite,
+    skeletonPulse 2.8s ease-in-out infinite;
 }
 
 .loader-dot {
@@ -419,7 +421,8 @@ const handleSearchInput = (event: Event) => {
   width: 0.65rem;
   border-radius: 9999px;
   background: linear-gradient(135deg, #38bdf8, #fbbf24);
-  animation: loaderBlink 0.9s ease-in-out infinite alternate;
+  box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.25);
+  animation: loaderBlink 1.6s ease-in-out infinite;
 }
 
 @keyframes shimmer {
@@ -428,32 +431,40 @@ const handleSearchInput = (event: Event) => {
   }
 
   100% {
-    background-position: -220% 0;
+    background-position: -180% 0;
   }
 }
 
 @keyframes skeletonPulse {
   0%,
   100% {
-    opacity: 0.75;
+    opacity: 0.82;
     transform: scale(1);
   }
 
   50% {
-    opacity: 1;
-    transform: scale(1.01);
+    opacity: 0.98;
+    transform: scale(1.006);
   }
 }
 
 @keyframes loaderBlink {
   0% {
-    opacity: 0.45;
-    transform: scale(0.85);
+    opacity: 0.55;
+    transform: scale(0.92);
+    box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.16);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1);
+    box-shadow: 0 0 0 8px rgba(56, 189, 248, 0.08);
   }
 
   100% {
-    opacity: 1;
-    transform: scale(1.1);
+    opacity: 0.7;
+    transform: scale(0.95);
+    box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.04);
   }
 }
 </style>
