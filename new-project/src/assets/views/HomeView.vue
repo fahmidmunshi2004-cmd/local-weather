@@ -403,17 +403,16 @@ const handleSearchInput = (event: Event) => {
 .skeleton {
   background: linear-gradient(
     90deg,
-    rgba(219, 234, 254, 0.65) 0%,
-    rgba(255, 255, 255, 0.94) 35%,
-    rgba(125, 211, 252, 0.52) 50%,
-    rgba(255, 255, 255, 0.94) 65%,
-    rgba(219, 234, 254, 0.65) 100%
+    rgba(226, 232, 240, 0.5) 0%,
+    rgba(255, 255, 255, 0.78) 40%,
+    rgba(186, 230, 253, 0.42) 50%,
+    rgba(255, 255, 255, 0.78) 60%,
+    rgba(226, 232, 240, 0.5) 100%
   );
-  background-size: 240% 100%;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.65);
+  background-size: 220% 100%;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
   will-change: background-position, opacity, transform;
-  animation: shimmer 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite,
-    skeletonPulse 2.8s ease-in-out infinite;
+  animation: shimmer 2.8s linear infinite, skeletonPulse 4.2s ease-in-out infinite;
 }
 
 .loader-dot {
@@ -421,50 +420,50 @@ const handleSearchInput = (event: Event) => {
   width: 0.65rem;
   border-radius: 9999px;
   background: linear-gradient(135deg, #38bdf8, #fbbf24);
-  box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.25);
-  animation: loaderBlink 1.6s ease-in-out infinite;
+  box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.14);
+  animation: loaderBlink 2.6s ease-in-out infinite;
 }
 
 @keyframes shimmer {
   0% {
-    background-position: 220% 0;
+    background-position: 180% 0;
   }
 
   100% {
-    background-position: -180% 0;
+    background-position: -120% 0;
   }
 }
 
 @keyframes skeletonPulse {
   0%,
   100% {
-    opacity: 0.82;
+    opacity: 0.88;
     transform: scale(1);
   }
 
   50% {
-    opacity: 0.98;
-    transform: scale(1.006);
+    opacity: 0.96;
+    transform: scale(1.003);
   }
 }
 
 @keyframes loaderBlink {
   0% {
-    opacity: 0.55;
-    transform: scale(0.92);
-    box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.16);
+    opacity: 0.68;
+    transform: scale(0.96);
+    box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.1);
   }
 
   50% {
-    opacity: 1;
+    opacity: 0.94;
     transform: scale(1);
-    box-shadow: 0 0 0 8px rgba(56, 189, 248, 0.08);
+    box-shadow: 0 0 0 5px rgba(56, 189, 248, 0.04);
   }
 
   100% {
-    opacity: 0.7;
-    transform: scale(0.95);
-    box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.04);
+    opacity: 0.72;
+    transform: scale(0.97);
+    box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.02);
   }
 }
 </style>

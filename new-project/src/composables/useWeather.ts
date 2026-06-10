@@ -75,26 +75,34 @@ const formatSpeed = (value: number) => `${Math.round(value)} km/h`;
 const formatPressure = (value: number) => `${Math.round(value)} hPa`;
 const formatDistance = (value: number) => `${(value / 1000).toFixed(1)} km`;
 
-const formatHour = (value: string, timezone?: string) =>
+const parseWeatherDate = (value: string) => {
+  const [datePart = "", timePart = "00:00"] = value.split("T");
+  const [year, month, day] = datePart.split("-").map(Number);
+  const [hour = 0, minute = 0, second = 0] = timePart.split(":").map(Number);
+
+  return new Date(Date.UTC(year, (month || 1) - 1, day || 1, hour, minute, second));
+};
+
+const formatHour = (value: string) =>
   new Intl.DateTimeFormat("en-US", {
     hour: "numeric",
     hour12: true,
-    timeZone: timezone,
-  }).format(new Date(value));
+    timeZone: "UTC",
+  }).format(parseWeatherDate(value));
 
-const formatTime = (value: string, timezone?: string) =>
+const formatTime = (value: string) =>
   new Intl.DateTimeFormat("en-US", {
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
-    timeZone: timezone,
-  }).format(new Date(value));
+    timeZone: "UTC",
+  }).format(parseWeatherDate(value));
 
-const formatWeekday = (value: string, timezone?: string) =>
+const formatWeekday = (value: string) =>
   new Intl.DateTimeFormat("en-US", {
     weekday: "long",
-    timeZone: timezone,
-  }).format(new Date(value));
+    timeZone: "UTC",
+  }).format(parseWeatherDate(value));
 
 const formatLiveDate = (value: number, timezone?: string) =>
   new Intl.DateTimeFormat("en-US", {
@@ -120,6 +128,24 @@ const formatUpdatedAt = (value: number, timezone?: string) =>
     hour12: true,
     timeZone: timezone,
   }).format(new Date(value));
+
+const getHourlyKeyForTimezone = (value: number, timezone?: string) => {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    hour12: false,
+    timeZone: timezone,
+  }).formatToParts(new Date(value));
+
+  const year = parts.find((part) => part.type === "year")?.value ?? "0000";
+  const month = parts.find((part) => part.type === "month")?.value ?? "01";
+  const day = parts.find((part) => part.type === "day")?.value ?? "01";
+  const hour = parts.find((part) => part.type === "hour")?.value ?? "00";
+
+  return `${year}-${month}-${day}T${hour}:00`;
+};
 
 const getFaviconMarkup = (icon: string, iconColor: string) => {
   const bg =
@@ -287,8 +313,11 @@ const buildWeatherState = (
   const current = forecast.current;
   const daily = forecast.daily;
   const hourly = forecast.hourly;
-  const currentIndex = hourly.time.findIndex((time: string) => time === current.time);
-  const safeIndex = currentIndex >= 0 ? currentIndex : 0;
+  const currentHourKey = getHourlyKeyForTimezone(Date.now(), timezone);
+  const currentIndex = hourly.time.findIndex((time: string) => time >= currentHourKey);
+  const fallbackCurrentIndex = hourly.time.findIndex((time: string) => time === current.time);
+  const safeIndex =
+    currentIndex >= 0 ? currentIndex : fallbackCurrentIndex >= 0 ? fallbackCurrentIndex : 0;
   const visual = getWeatherVisual(current.weather_code, current.is_day === 1);
   const comfort = getComfortSummary(
     current.apparent_temperature,
@@ -303,7 +332,7 @@ const buildWeatherState = (
     );
 
     return {
-      time: index === 0 ? "Now" : formatHour(time, timezone),
+      time: index === 0 ? "Now" : formatHour(time),
       temp: formatTemp(hourly.temperature_2m[safeIndex + index]),
       icon: hourVisual.icon,
       iconColor: hourVisual.iconColor,
@@ -314,7 +343,7 @@ const buildWeatherState = (
     const dayVisual = getWeatherVisual(daily.weather_code[index], true);
 
     return {
-      label: index === 0 ? "Today" : formatWeekday(time, timezone),
+      label: index === 0 ? "Today" : formatWeekday(time),
       range: `${formatTemp(daily.temperature_2m_max[index])} / ${formatTemp(daily.temperature_2m_min[index])}`,
       icon: dayVisual.icon,
       iconColor: dayVisual.iconColor,
@@ -334,7 +363,7 @@ const buildWeatherState = (
     visibility: formatDistance(hourly.visibility[safeIndex]),
     uvIndex: `${Math.round(daily.uv_index_max[0] ?? 0)} Moderate`,
     rainChance: formatPercent(daily.precipitation_probability_max[0] ?? 0),
-    sunrise: formatTime(daily.sunrise[0], timezone),
+    sunrise: formatTime(daily.sunrise[0]),
     comfortLabel: comfort.label,
     comfortText: comfort.text,
     heroTitle: `${location.name} weather in real time`,

@@ -26,10 +26,10 @@ import Sidenavigation from "./components/Sidenavigation.vue";
   position: absolute;
   border-radius: 9999px;
   pointer-events: none;
-  filter: blur(18px);
-  opacity: 0.55;
+  filter: blur(24px);
+  opacity: 0.48;
   will-change: transform, opacity;
-  animation: floatSky 24s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation: floatSky 34s cubic-bezier(0.37, 0, 0.23, 1) infinite;
 }
 
 .sky-orb-one {
@@ -46,7 +46,7 @@ import Sidenavigation from "./components/Sidenavigation.vue";
   height: 220px;
   width: 220px;
   background: radial-gradient(circle, rgba(255, 255, 255, 0.68) 0%, rgba(125, 211, 252, 0.2) 72%, transparent 100%);
-  animation-delay: -7s;
+  animation-delay: -10s;
 }
 
 .sky-orb-three {
@@ -55,7 +55,7 @@ import Sidenavigation from "./components/Sidenavigation.vue";
   height: 140px;
   width: 140px;
   background: radial-gradient(circle, rgba(255, 255, 255, 0.78) 0%, rgba(191, 219, 254, 0.16) 68%, transparent 100%);
-  animation-delay: -11s;
+  animation-delay: -16s;
 }
 
 @keyframes floatSky {
@@ -65,7 +65,7 @@ import Sidenavigation from "./components/Sidenavigation.vue";
   }
 
   50% {
-    transform: translate3d(0, -10px, 0) scale(1.04);
+    transform: translate3d(0, -6px, 0) scale(1.025);
   }
 }
 </style>
