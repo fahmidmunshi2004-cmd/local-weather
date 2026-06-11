@@ -46,11 +46,10 @@
             <h1
               class="max-w-2xl text-4xl font-bold tracking-tight text-slate-800 sm:text-5xl"
             >
-              {{ weather?.heroTitle ?? "Loading live weather..." }}
+              {{ heroTitle }}
             </h1>
             <p class="max-w-xl text-base leading-7 text-slate-600 sm:text-lg">
-              Search any city worldwide for live conditions, local time, hourly
-              updates, and a cleaner multi-day forecast.
+              {{ heroDescription }}
             </p>
           </div>
         </div>
@@ -111,6 +110,35 @@
           <p v-if="errorMessage" class="text-sm text-rose-500">
             {{ errorMessage }}
           </p>
+
+          <div
+            v-if="showUnavailable"
+            class="rounded-[26px] border border-rose-200 bg-rose-50/90 p-5 text-slate-700 shadow-sm"
+          >
+            <div class="flex items-start gap-3">
+              <span
+                class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-rose-100 text-rose-500"
+              >
+                <i class="fa-solid fa-cloud-bolt"></i>
+              </span>
+              <div class="space-y-2">
+                <h2 class="text-lg font-semibold text-slate-800">
+                  Weather service unavailable
+                </h2>
+                <p class="text-sm leading-6">
+                  Live forecast data could not be loaded. The API is likely down
+                  or unreachable from this network.
+                </p>
+                <button
+                  type="button"
+                  class="inline-flex items-center justify-center rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+                  @click="retryCurrentWeather"
+                >
+                  Try Again
+                </button>
+              </div>
+            </div>
+          </div>
 
           <div v-if="showSkeleton" class="grid gap-3 sm:grid-cols-3">
             <div
@@ -176,7 +204,7 @@
             </div>
 
             <div
-              v-else
+              v-else-if="weather"
               class="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6"
             >
               <div
@@ -193,6 +221,13 @@
                 </p>
               </div>
             </div>
+
+            <p
+              v-else
+              class="mt-4 rounded-2xl border border-dashed border-slate-200 bg-white/70 px-4 py-6 text-sm text-slate-500"
+            >
+              Hourly forecast will appear here when live data is available.
+            </p>
           </div>
         </div>
       </div>
@@ -320,7 +355,7 @@
           </div>
         </div>
 
-        <div v-else class="mt-5 space-y-3">
+        <div v-else-if="weather" class="mt-5 space-y-3">
           <div
             v-for="day in weather?.dailyForecast ?? []"
             :key="day.label"
@@ -333,6 +368,13 @@
             <span class="font-semibold text-slate-800">{{ day.range }}</span>
           </div>
         </div>
+
+        <p
+          v-else
+          class="mt-5 rounded-2xl border border-dashed border-slate-200 bg-sky-50/40 px-4 py-6 text-sm text-slate-500"
+        >
+          Daily outlook is unavailable until the weather service responds.
+        </p>
       </div>
 
       <div
@@ -354,7 +396,7 @@
           </div>
         </div>
 
-        <div v-else class="mt-5 grid grid-cols-2 gap-3">
+        <div v-else-if="weather" class="mt-5 grid grid-cols-2 gap-3">
           <div
             v-for="condition in weather?.airConditions ?? []"
             :key="condition.label"
@@ -366,6 +408,14 @@
             </p>
           </div>
         </div>
+
+        <p
+          v-else
+          class="mt-5 rounded-2xl border border-dashed border-slate-200 bg-white/70 px-4 py-6 text-sm text-slate-500"
+        >
+          Air condition details will return automatically when live weather data
+          becomes available.
+        </p>
       </div>
     </aside>
   </section>
@@ -380,6 +430,7 @@ const {
   searchQuery,
   suggestions,
   weather,
+  selectedLocation,
   isSearching,
   isLoadingWeather,
   errorMessage,
@@ -389,13 +440,50 @@ const {
   searchLocations,
   selectLocation,
   searchFirstResult,
+  fetchWeather,
 } = useWeather();
 
-const showSkeleton = computed(() => isLoadingWeather.value);
+const showSkeleton = computed(() => isLoadingWeather.value && !weather.value);
+const showUnavailable = computed(
+  () => !showSkeleton.value && !weather.value && Boolean(errorMessage.value),
+);
+
+const heroTitle = computed(() => {
+  if (weather.value) {
+    return weather.value.heroTitle;
+  }
+
+  if (showUnavailable.value) {
+    return "Live weather is temporarily unavailable";
+  }
+
+  return "Loading live weather...";
+});
+
+const heroDescription = computed(() => {
+  if (showUnavailable.value) {
+    return "The weather provider is not responding right now. Search again in a few minutes or try another city.";
+  }
+
+  return "Search any city worldwide for live conditions, local time, hourly updates, and a cleaner multi-day forecast.";
+});
 
 const handleSearchInput = (event: Event) => {
   const target = event.target as HTMLInputElement;
   searchLocations(target.value);
+};
+
+const retryCurrentWeather = () => {
+  const location = selectedLocation.value ?? {
+    id: 1,
+    name: "Dhaka",
+    country: "Bangladesh",
+    latitude: 23.7104,
+    longitude: 90.4074,
+    timezone: "Asia/Dhaka",
+  };
+
+  void fetchWeather(location);
 };
 </script>
 

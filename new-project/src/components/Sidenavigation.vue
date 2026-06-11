@@ -125,11 +125,11 @@ import BaseModal from "./BaseModal.vue";
 import { useWeather } from "@/composables/useWeather";
 
 const modalActive = ref(false);
-const { selectedLocation, weather, liveClock } = useWeather();
+const { selectedLocation, weather, liveClock, errorMessage } = useWeather();
 
 const locationLabel = computed(() => {
   if (!selectedLocation.value) {
-    return "Loading location...";
+    return errorMessage.value ? "Location unavailable" : "Loading location...";
   }
 
   return `${selectedLocation.value.name}, ${selectedLocation.value.country}`;
@@ -137,7 +137,7 @@ const locationLabel = computed(() => {
 
 const temperatureLabel = computed(() => {
   if (!weather.value) {
-    return "Loading live weather...";
+    return errorMessage.value ? "Weather unavailable" : "Loading live weather...";
   }
 
   return `${weather.value.temperature} Feels like ${weather.value.feelsLike}`;
@@ -145,7 +145,7 @@ const temperatureLabel = computed(() => {
 
 const clockLabel = computed(() => {
   if (!liveClock.value) {
-    return "Loading time...";
+    return errorMessage.value ? "Time unavailable" : "Loading time...";
   }
 
   return liveClock.value;

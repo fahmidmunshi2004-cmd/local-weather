@@ -53,10 +53,14 @@ type WeatherState = {
   todayIconColor: string;
 };
 
+type WeatherProvider = "open-meteo" | "wttr";
+
 const GEO_URL = "/api/geocoding";
 const FORECAST_URL = "/api/forecast";
 const GEO_FALLBACK_URL = "https://geocoding-api.open-meteo.com/v1/search";
 const FORECAST_FALLBACK_URL = "https://api.open-meteo.com/v1/forecast";
+const NOMINATIM_URL = "https://nominatim.openstreetmap.org/search";
+const WTTR_URL = "https://wttr.in";
 
 const searchQuery = ref("");
 const suggestions = ref<GeocodingResult[]>([]);
@@ -71,11 +75,18 @@ const lastUpdated = ref("");
 let searchDebounce: ReturnType<typeof setTimeout> | null = null;
 let weatherRefreshInterval: ReturnType<typeof setInterval> | null = null;
 
+const DEFAULT_TIMEZONE = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
 const formatTemp = (value: number) => `${Math.round(value)}\u00B0`;
 const formatPercent = (value: number) => `${Math.round(value)}%`;
 const formatSpeed = (value: number) => `${Math.round(value)} km/h`;
 const formatPressure = (value: number) => `${Math.round(value)} hPa`;
 const formatDistance = (value: number) => `${(value / 1000).toFixed(1)} km`;
+const parseNumber = (value: unknown, fallback = 0) => {
+  const parsed =
+    typeof value === "number" ? value : typeof value === "string" ? Number(value) : Number.NaN;
+
+  return Number.isFinite(parsed) ? parsed : fallback;
+};
 
 const parseWeatherDate = (value: string) => {
   const [datePart = "", timePart = "00:00"] = value.split("T");
@@ -372,6 +383,73 @@ const getComfortSummary = (apparentTemp: number, rainChance: number, windSpeed: 
   };
 };
 
+const weatherCodeFromDescription = (value: string) => {
+  const normalized = value.toLowerCase();
+
+  if (normalized.includes("thunder")) {
+    return 95;
+  }
+
+  if (normalized.includes("snow") || normalized.includes("blizzard")) {
+    return 71;
+  }
+
+  if (
+    normalized.includes("rain") ||
+    normalized.includes("drizzle") ||
+    normalized.includes("shower")
+  ) {
+    return 61;
+  }
+
+  if (normalized.includes("fog") || normalized.includes("mist") || normalized.includes("haze")) {
+    return 45;
+  }
+
+  if (normalized.includes("overcast")) {
+    return 3;
+  }
+
+  if (normalized.includes("cloud")) {
+    return 2;
+  }
+
+  return 0;
+};
+
+const normalizeWttrTime = (value: string) => {
+  const numericTime = parseNumber(value);
+  const hour = Math.floor(numericTime / 100);
+  const safeHour = hour.toString().padStart(2, "0");
+
+  return `${safeHour}:00`;
+};
+
+const toUtcIsoHour = (date: string, time: string) => `${date}T${normalizeWttrTime(time)}`;
+
+const buildWttrHourlyTimeline = (forecastDays: Array<Record<string, any>>) =>
+  forecastDays.flatMap((day) =>
+    (day.hourly ?? []).map((hour: Record<string, any>) => {
+      const description =
+        hour.weatherDesc?.[0]?.value ??
+        hour.weatherDescription?.[0]?.value ??
+        "Mixed weather";
+      const code = weatherCodeFromDescription(description);
+
+      return {
+        time: toUtcIsoHour(day.date, String(hour.time ?? "0")),
+        temperature: parseNumber(hour.tempC),
+        feelsLike: parseNumber(hour.FeelsLikeC, parseNumber(hour.tempC)),
+        humidity: parseNumber(hour.humidity),
+        wind: parseNumber(hour.windspeedKmph),
+        visibility: parseNumber(hour.visibility) * 1000,
+        chanceOfRain: parseNumber(hour.chanceofrain),
+        weatherCode: code,
+        summary: description,
+      };
+    }),
+  );
+
 const buildWeatherState = (
   location: GeocodingResult,
   forecast: Record<string, any>,
@@ -420,7 +498,7 @@ const buildWeatherState = (
   return {
     city: location.name,
     country: location.country,
-    timezone: timezone ?? "auto",
+    timezone: timezone ?? DEFAULT_TIMEZONE,
     temperature: formatTemp(current.temperature_2m),
     feelsLike: formatTemp(current.apparent_temperature),
     summary: visual.label,
@@ -445,6 +523,140 @@ const buildWeatherState = (
     todayIcon: visual.icon,
     todayIconColor: visual.iconColor,
   };
+};
+
+const buildWeatherStateFromWttr = (
+  location: GeocodingResult,
+  forecast: Record<string, any>,
+): WeatherState => {
+  const current = forecast.current_condition?.[0] ?? {};
+  const weatherDays = (forecast.weather ?? []) as Array<Record<string, any>>;
+  const hourlyTimeline = buildWttrHourlyTimeline(weatherDays);
+  const currentHourKey = getHourlyKeyForTimezone(Date.now(), location.timezone);
+  const safeIndex = hourlyTimeline.findIndex((entry) => entry.time >= currentHourKey);
+  const resolvedIndex = safeIndex >= 0 ? safeIndex : 0;
+  const currentDescription =
+    current.weatherDesc?.[0]?.value ?? current.weatherDescription?.[0]?.value ?? "Mixed weather";
+  const currentCode = weatherCodeFromDescription(currentDescription);
+  const visual = getWeatherVisual(currentCode, true);
+  const firstDay = weatherDays[0] ?? {};
+  const comfort = getComfortSummary(
+    parseNumber(current.FeelsLikeC, parseNumber(current.temp_C)),
+    parseNumber(firstDay.hourly?.[0]?.chanceofrain),
+    parseNumber(current.windspeedKmph),
+  );
+
+  const hourlyForecast = hourlyTimeline.slice(resolvedIndex, resolvedIndex + 6).map((entry, index) => {
+    const hourVisual = getWeatherVisual(entry.weatherCode, true);
+
+    return {
+      time: index === 0 ? "Now" : formatHour(entry.time),
+      temp: formatTemp(entry.temperature),
+      icon: hourVisual.icon,
+      iconColor: hourVisual.iconColor,
+    };
+  });
+
+  const dailyForecast = weatherDays.slice(0, 3).map((day, index) => {
+    const midday = day.hourly?.[4] ?? day.hourly?.[0] ?? {};
+    const dayDescription =
+      midday.weatherDesc?.[0]?.value ?? midday.weatherDescription?.[0]?.value ?? "Mixed weather";
+    const dayVisual = getWeatherVisual(weatherCodeFromDescription(dayDescription), true);
+
+    return {
+      label: index === 0 ? "Today" : formatWeekday(day.date),
+      range: `${formatTemp(parseNumber(day.maxtempC))} / ${formatTemp(parseNumber(day.mintempC))}`,
+      icon: dayVisual.icon,
+      iconColor: dayVisual.iconColor,
+    };
+  });
+
+  const sunrise = firstDay.astronomy?.[0]?.sunrise ?? "--";
+  const rainChance = hourlyTimeline[resolvedIndex]?.chanceOfRain ?? 0;
+  const visibility = hourlyTimeline[resolvedIndex]?.visibility ?? parseNumber(current.visibility) * 1000;
+  const uvIndex = parseNumber(current.uvIndex);
+
+  return {
+    city: location.name,
+    country: location.country,
+    timezone: location.timezone ?? DEFAULT_TIMEZONE,
+    temperature: formatTemp(parseNumber(current.temp_C)),
+    feelsLike: formatTemp(parseNumber(current.FeelsLikeC, parseNumber(current.temp_C))),
+    summary: currentDescription,
+    humidity: formatPercent(parseNumber(current.humidity)),
+    wind: formatSpeed(parseNumber(current.windspeedKmph)),
+    pressure: formatPressure(parseNumber(current.pressure)),
+    visibility: formatDistance(visibility),
+    uvIndex: `${Math.round(uvIndex)} Moderate`,
+    rainChance: formatPercent(rainChance),
+    sunrise,
+    comfortLabel: comfort.label,
+    comfortText: comfort.text,
+    heroTitle: `${location.name} weather in real time`,
+    hourlyForecast,
+    dailyForecast,
+    airConditions: [
+      {
+        label: "Real Feel",
+        value: formatTemp(parseNumber(current.FeelsLikeC, parseNumber(current.temp_C))),
+      },
+      { label: "Pressure", value: formatPressure(parseNumber(current.pressure)) },
+      { label: "Visibility", value: formatDistance(visibility) },
+      { label: "UV Index", value: `${Math.round(uvIndex)} Moderate` },
+    ],
+    todayIcon: visual.icon,
+    todayIconColor: visual.iconColor,
+  };
+};
+
+const buildLocationFromNominatim = (entry: Record<string, any>, fallbackId: number) => {
+  const address = entry.address ?? {};
+  const primaryName =
+    entry.name ??
+    address.city ??
+    address.town ??
+    address.village ??
+    address.municipality ??
+    entry.display_name?.split(",")?.[0] ??
+    "Unknown location";
+
+  return {
+    id: parseNumber(entry.place_id, fallbackId),
+    name: primaryName,
+    country: address.country ?? "Unknown country",
+    admin1: address.state ?? address.region ?? address.county,
+    latitude: parseNumber(entry.lat),
+    longitude: parseNumber(entry.lon),
+    timezone: undefined,
+  } satisfies GeocodingResult;
+};
+
+const fetchWttrWeather = async (location: GeocodingResult) => {
+  const query = `${location.latitude},${location.longitude}`;
+  const params = new URLSearchParams({
+    format: "j1",
+  });
+
+  return fetchJson(
+    `${WTTR_URL}/${query}?${params.toString()}`,
+    "Failed to load fallback weather data.",
+  );
+};
+
+const fetchNominatimLocations = async (query: string, count: number) => {
+  const params = new URLSearchParams({
+    q: query,
+    format: "jsonv2",
+    addressdetails: "1",
+    limit: String(count),
+  });
+
+  const data = (await fetchJson(
+    `${NOMINATIM_URL}?${params.toString()}`,
+    "Failed to search fallback locations.",
+  )) as Array<Record<string, any>>;
+
+  return data.map((entry, index) => buildLocationFromNominatim(entry, index + 1));
 };
 
 const fetchWeather = async (location: GeocodingResult) => {
@@ -483,12 +695,24 @@ const fetchWeather = async (location: GeocodingResult) => {
       timezone: "auto",
     });
 
-    const data = await fetchJson(
-      `${FORECAST_URL}?${params.toString()}`,
-      "Failed to load live weather data.",
-    );
+    let provider: WeatherProvider = "open-meteo";
+    let data: Record<string, any>;
+
+    try {
+      data = await fetchJson(
+        `${FORECAST_URL}?${params.toString()}`,
+        "Failed to load live weather data.",
+      );
+    } catch {
+      provider = "wttr";
+      data = await fetchWttrWeather(location);
+    }
+
     selectedLocation.value = location;
-    weather.value = buildWeatherState(location, data);
+    weather.value =
+      provider === "open-meteo"
+        ? buildWeatherState(location, data)
+        : buildWeatherStateFromWttr(location, data);
     lastUpdated.value = formatUpdatedAt(Date.now(), weather.value.timezone);
   } catch (error) {
     errorMessage.value =
@@ -522,11 +746,15 @@ const searchLocations = (query: string) => {
         format: "json",
       });
 
-      const data = await fetchJson(
-        `${GEO_URL}?${params.toString()}`,
-        "Failed to search cities.",
-      );
-      suggestions.value = data.results ?? [];
+      try {
+        const data = await fetchJson(
+          `${GEO_URL}?${params.toString()}`,
+          "Failed to search cities.",
+        );
+        suggestions.value = data.results ?? [];
+      } catch {
+        suggestions.value = await fetchNominatimLocations(query, 6);
+      }
     } catch (error) {
       suggestions.value = [];
       errorMessage.value =
@@ -560,18 +788,24 @@ const searchFirstResult = async () => {
   isSearching.value = true;
 
   try {
-    const params = new URLSearchParams({
-      name: searchQuery.value,
-      count: "1",
-      language: "en",
-      format: "json",
-    });
+    let firstResult: GeocodingResult | undefined;
 
-    const data = await fetchJson(
-      `${GEO_URL}?${params.toString()}`,
-      "Failed to search cities.",
-    );
-    const firstResult = data.results?.[0] as GeocodingResult | undefined;
+    try {
+      const params = new URLSearchParams({
+        name: searchQuery.value,
+        count: "1",
+        language: "en",
+        format: "json",
+      });
+
+      const data = await fetchJson(
+        `${GEO_URL}?${params.toString()}`,
+        "Failed to search cities.",
+      );
+      firstResult = data.results?.[0] as GeocodingResult | undefined;
+    } catch {
+      [firstResult] = await fetchNominatimLocations(searchQuery.value, 1);
+    }
 
     if (!firstResult) {
       throw new Error("No city found for that search.");
@@ -651,6 +885,7 @@ export const useWeather = () => ({
   searchLocations,
   selectLocation,
   searchFirstResult,
+  fetchWeather,
   liveDate,
   liveClock,
   lastUpdated,
