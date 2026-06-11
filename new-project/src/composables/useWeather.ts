@@ -57,8 +57,6 @@ type WeatherProvider = "open-meteo" | "wttr";
 
 const GEO_URL = "/api/geocoding";
 const FORECAST_URL = "/api/forecast";
-const GEO_FALLBACK_URL = "https://geocoding-api.open-meteo.com/v1/search";
-const FORECAST_FALLBACK_URL = "https://api.open-meteo.com/v1/forecast";
 const NOMINATIM_URL = "https://nominatim.openstreetmap.org/search";
 const WTTR_URL = "https://wttr.in";
 
@@ -228,21 +226,9 @@ const syncFavicon = (icon: string, iconColor: string) => {
   favicon.href = `data:image/svg+xml,${encodeURIComponent(svg)}`;
 };
 
-const resolveFallbackUrl = (url: string) => {
-  if (url.startsWith(`${GEO_URL}?`)) {
-    return url.replace(GEO_URL, GEO_FALLBACK_URL);
-  }
-
-  if (url.startsWith(`${FORECAST_URL}?`)) {
-    return url.replace(FORECAST_URL, FORECAST_FALLBACK_URL);
-  }
-
-  return null;
-};
-
 const fetchJson = async (url: string, fallbackMessage: string) => {
-  const fetchWithValidation = async (requestUrl: string) => {
-    const response = await fetch(requestUrl, {
+  try {
+    const response = await fetch(url, {
       headers: {
         Accept: "application/json",
       },
@@ -253,26 +239,7 @@ const fetchJson = async (url: string, fallbackMessage: string) => {
     }
 
     return response.json();
-  };
-
-  try {
-    return await fetchWithValidation(url);
   } catch (error) {
-    const fallbackUrl = resolveFallbackUrl(url);
-
-    if (fallbackUrl) {
-      try {
-        return await fetchWithValidation(fallbackUrl);
-      } catch (fallbackError) {
-        if (
-          fallbackError instanceof Error &&
-          fallbackError.message !== "Failed to fetch"
-        ) {
-          throw fallbackError;
-        }
-      }
-    }
-
     if (error instanceof Error && error.message !== "Failed to fetch") {
       throw error;
     }

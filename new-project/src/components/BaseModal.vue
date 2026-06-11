@@ -8,6 +8,7 @@
       >
         <div
           @click.stop
+          v-bind="attrs"
           class="w-full max-w-lg rounded-[28px] border border-slate-200 bg-white p-6 text-slate-800 shadow-[0_30px_80px_rgba(39,94,135,0.16)]"
         >
           <slot></slot>
@@ -27,6 +28,12 @@
 </template>
 
 <script setup lang="ts">
+import { useAttrs } from "vue";
+
+defineOptions({
+  inheritAttrs: false,
+});
+
 defineProps<{
   modalActive: boolean;
 }>();
@@ -34,6 +41,8 @@ defineProps<{
 defineEmits<{
   close: [];
 }>();
+
+const attrs = useAttrs();
 </script>
 
 <style scoped>
