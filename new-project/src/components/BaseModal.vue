@@ -4,7 +4,7 @@
       <div
         v-if="modalActive"
         @click="$emit('close')"
-        class="fixed inset-0 z-[9999] flex items-center justify-center bg-white/65 p-4 backdrop-blur-md"
+        class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 p-4 backdrop-blur-md"
       >
         <div
           @click.stop
