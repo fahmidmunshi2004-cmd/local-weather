@@ -53,8 +53,10 @@ type WeatherState = {
   todayIconColor: string;
 };
 
-const GEO_URL = "https://geocoding-api.open-meteo.com/v1/search";
-const FORECAST_URL = "https://api.open-meteo.com/v1/forecast";
+const GEO_URL = "/api/geocoding";
+const FORECAST_URL = "/api/forecast";
+const GEO_FALLBACK_URL = "https://geocoding-api.open-meteo.com/v1/search";
+const FORECAST_FALLBACK_URL = "https://api.open-meteo.com/v1/forecast";
 
 const searchQuery = ref("");
 const suggestions = ref<GeocodingResult[]>([]);
@@ -77,10 +79,20 @@ const formatDistance = (value: number) => `${(value / 1000).toFixed(1)} km`;
 
 const parseWeatherDate = (value: string) => {
   const [datePart = "", timePart = "00:00"] = value.split("T");
-  const [year, month, day] = datePart.split("-").map(Number);
-  const [hour = 0, minute = 0, second = 0] = timePart.split(":").map(Number);
+  const [yearRaw, monthRaw, dayRaw] = datePart.split("-").map(Number);
+  const [hourRaw = 0, minuteRaw = 0, secondRaw = 0] = timePart.split(":").map(Number);
+  const safeYear = typeof yearRaw === "number" && Number.isFinite(yearRaw) ? yearRaw : 1970;
+  const safeMonth = typeof monthRaw === "number" && Number.isFinite(monthRaw) ? monthRaw : 1;
+  const safeDay = typeof dayRaw === "number" && Number.isFinite(dayRaw) ? dayRaw : 1;
+  const safeHour = typeof hourRaw === "number" && Number.isFinite(hourRaw) ? hourRaw : 0;
+  const safeMinute =
+    typeof minuteRaw === "number" && Number.isFinite(minuteRaw) ? minuteRaw : 0;
+  const safeSecond =
+    typeof secondRaw === "number" && Number.isFinite(secondRaw) ? secondRaw : 0;
 
-  return new Date(Date.UTC(year, (month || 1) - 1, day || 1, hour, minute, second));
+  return new Date(
+    Date.UTC(safeYear, safeMonth - 1, safeDay, safeHour, safeMinute, safeSecond),
+  );
 };
 
 const formatHour = (value: string) =>
@@ -203,6 +215,61 @@ const syncFavicon = (icon: string, iconColor: string) => {
 
   const svg = getFaviconMarkup(icon, iconColor);
   favicon.href = `data:image/svg+xml,${encodeURIComponent(svg)}`;
+};
+
+const resolveFallbackUrl = (url: string) => {
+  if (url.startsWith(`${GEO_URL}?`)) {
+    return url.replace(GEO_URL, GEO_FALLBACK_URL);
+  }
+
+  if (url.startsWith(`${FORECAST_URL}?`)) {
+    return url.replace(FORECAST_URL, FORECAST_FALLBACK_URL);
+  }
+
+  return null;
+};
+
+const fetchJson = async (url: string, fallbackMessage: string) => {
+  const fetchWithValidation = async (requestUrl: string) => {
+    const response = await fetch(requestUrl, {
+      headers: {
+        Accept: "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(fallbackMessage);
+    }
+
+    return response.json();
+  };
+
+  try {
+    return await fetchWithValidation(url);
+  } catch (error) {
+    const fallbackUrl = resolveFallbackUrl(url);
+
+    if (fallbackUrl) {
+      try {
+        return await fetchWithValidation(fallbackUrl);
+      } catch (fallbackError) {
+        if (
+          fallbackError instanceof Error &&
+          fallbackError.message !== "Failed to fetch"
+        ) {
+          throw fallbackError;
+        }
+      }
+    }
+
+    if (error instanceof Error && error.message !== "Failed to fetch") {
+      throw error;
+    }
+
+    throw new Error(
+      "Weather service is temporarily unreachable. Check your connection and try again.",
+    );
+  }
 };
 
 const getWeatherVisual = (code: number, isDay = true) => {
@@ -416,12 +483,10 @@ const fetchWeather = async (location: GeocodingResult) => {
       timezone: "auto",
     });
 
-    const response = await fetch(`${FORECAST_URL}?${params.toString()}`);
-    if (!response.ok) {
-      throw new Error("Failed to load live weather data.");
-    }
-
-    const data = await response.json();
+    const data = await fetchJson(
+      `${FORECAST_URL}?${params.toString()}`,
+      "Failed to load live weather data.",
+    );
     selectedLocation.value = location;
     weather.value = buildWeatherState(location, data);
     lastUpdated.value = formatUpdatedAt(Date.now(), weather.value.timezone);
@@ -457,12 +522,10 @@ const searchLocations = (query: string) => {
         format: "json",
       });
 
-      const response = await fetch(`${GEO_URL}?${params.toString()}`);
-      if (!response.ok) {
-        throw new Error("Failed to search cities.");
-      }
-
-      const data = await response.json();
+      const data = await fetchJson(
+        `${GEO_URL}?${params.toString()}`,
+        "Failed to search cities.",
+      );
       suggestions.value = data.results ?? [];
     } catch (error) {
       suggestions.value = [];
@@ -504,8 +567,10 @@ const searchFirstResult = async () => {
       format: "json",
     });
 
-    const response = await fetch(`${GEO_URL}?${params.toString()}`);
-    const data = await response.json();
+    const data = await fetchJson(
+      `${GEO_URL}?${params.toString()}`,
+      "Failed to search cities.",
+    );
     const firstResult = data.results?.[0] as GeocodingResult | undefined;
 
     if (!firstResult) {

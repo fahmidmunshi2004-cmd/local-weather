@@ -11,6 +11,20 @@ export default defineConfig({
     vueDevTools(),
     tailwindcss(),
   ],
+  server: {
+    proxy: {
+      "/api/geocoding": {
+        target: "https://geocoding-api.open-meteo.com",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/geocoding/, "/v1/search"),
+      },
+      "/api/forecast": {
+        target: "https://api.open-meteo.com",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/forecast/, "/v1/forecast"),
+      },
+    },
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))

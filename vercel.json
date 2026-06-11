@@ -1,5 +1,23 @@
 {
   "installCommand": "npm install --prefix new-project",
   "buildCommand": "npm --prefix new-project run build-only",
-  "outputDirectory": "new-project/dist"
+  "outputDirectory": "new-project/dist",
+  "rewrites": [
+    {
+      "source": "/api/geocoding",
+      "destination": "https://geocoding-api.open-meteo.com/v1/search"
+    },
+    {
+      "source": "/api/forecast",
+      "destination": "https://api.open-meteo.com/v1/forecast"
+    },
+    {
+      "source": "/api/geocoding/:match*",
+      "destination": "https://geocoding-api.open-meteo.com/v1/search/:match*"
+    },
+    {
+      "source": "/api/forecast/:match*",
+      "destination": "https://api.open-meteo.com/v1/forecast/:match*"
+    }
+  ]
 }
