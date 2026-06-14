@@ -33,7 +33,9 @@
           </div>
 
           <div v-if="showSkeleton" class="space-y-4">
-            <div class="inline-flex items-center gap-2 rounded-full border border-sky-300 bg-sky-100/95 px-3 py-1 text-xs font-semibold text-sky-700 shadow-sm shadow-sky-200/70">
+            <div
+              class="inline-flex items-center gap-2 rounded-full border border-sky-300 bg-sky-100/95 px-3 py-1 text-xs font-semibold text-sky-700 shadow-sm shadow-sky-200/70"
+            >
               <span class="loader-dot"></span>
               Loading live weather
             </div>
@@ -445,7 +447,7 @@ const {
 
 const showSkeleton = computed(() => isLoadingWeather.value && !weather.value);
 const showUnavailable = computed(
-  () => !showSkeleton.value && !weather.value && Boolean(errorMessage.value),
+  () => !showSkeleton.value && !weather.value && Boolean(errorMessage.value)
 );
 
 const heroTitle = computed(() => {
@@ -498,11 +500,11 @@ const retryCurrentWeather = () => {
     rgba(203, 213, 225, 0.62) 100%
   );
   background-size: 220% 100%;
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.72),
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.72),
     0 8px 24px rgba(125, 211, 252, 0.12);
   will-change: background-position, opacity, transform;
-  animation: shimmer 2.8s linear infinite, skeletonPulse 4.2s ease-in-out infinite;
+  animation: shimmer 2.8s linear infinite,
+    skeletonPulse 4.2s ease-in-out infinite;
 }
 
 .loader-dot {
@@ -510,9 +512,7 @@ const retryCurrentWeather = () => {
   width: 0.65rem;
   border-radius: 9999px;
   background: linear-gradient(135deg, #38bdf8, #fbbf24);
-  box-shadow:
-    0 0 0 0 rgba(56, 189, 248, 0.2),
-    0 0 16px rgba(56, 189, 248, 0.26);
+  box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.2), 0 0 16px rgba(56, 189, 248, 0.26);
   animation: loaderBlink 2.6s ease-in-out infinite;
 }
 
@@ -543,24 +543,21 @@ const retryCurrentWeather = () => {
   0% {
     opacity: 0.76;
     transform: scale(0.96);
-    box-shadow:
-      0 0 0 0 rgba(56, 189, 248, 0.16),
+    box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.16),
       0 0 12px rgba(56, 189, 248, 0.2);
   }
 
   50% {
     opacity: 1;
     transform: scale(1);
-    box-shadow:
-      0 0 0 6px rgba(56, 189, 248, 0.08),
+    box-shadow: 0 0 0 6px rgba(56, 189, 248, 0.08),
       0 0 18px rgba(251, 191, 36, 0.16);
   }
 
   100% {
     opacity: 0.8;
     transform: scale(0.97);
-    box-shadow:
-      0 0 0 2px rgba(251, 191, 36, 0.05),
+    box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.05),
       0 0 10px rgba(56, 189, 248, 0.14);
   }
 }

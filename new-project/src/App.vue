@@ -7,7 +7,7 @@
     <div class="sky-orb sky-orb-three"></div>
 
     <section
-      class="relative z-10 mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-6xl flex-col rounded-[32px] border border-white/55 bg-white/40 p-5 shadow-[0_30px_80px_rgba(73,119,165,0.22)] backdrop-blur-xl xl:p-8"
+      class="relative z-10 mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-6xl flex-col rounded-4xl border border-white/55 bg-white/40 p-5 shadow-[0_30px_80px_rgba(73,119,165,0.22)] backdrop-blur-xl xl:p-8"
     >
       <Sidenavigation />
       <RouterView />
