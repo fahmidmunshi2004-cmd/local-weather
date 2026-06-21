@@ -1,7 +1,5 @@
 <template>
-  <section
-    class="grid flex-1 gap-6 lg:grid-cols-[1.1fr_0.9fr]"
-  >
+  <section class="grid flex-1 gap-6 lg:grid-cols-[1.1fr_0.9fr]">
     <div
       class="rounded-[30px] border border-white/10 bg-gradient-to-br from-slate-900 via-slate-800 to-cyan-950/60 p-8 shadow-2xl shadow-black/30"
     >
@@ -11,7 +9,9 @@
         About This App
       </span>
 
-      <h1 class="mt-5 max-w-2xl text-4xl font-bold tracking-tight text-white sm:text-5xl">
+      <h1
+        class="mt-5 max-w-2xl text-4xl font-bold tracking-tight text-white sm:text-5xl"
+      >
         Live global weather with a clean dashboard experience
       </h1>
 
@@ -43,14 +43,18 @@
     </div>
 
     <aside class="grid gap-6">
-      <div class="rounded-[30px] border border-white/10 bg-white/5 p-6 shadow-xl shadow-black/20">
+      <div
+        class="rounded-[30px] border border-white/10 bg-white/5 p-6 shadow-xl shadow-black/20"
+      >
         <h2 class="text-xl font-semibold text-white">Data Source</h2>
         <p class="mt-3 text-sm leading-6 text-slate-300">
           Live weather and city search are powered by Open-Meteo APIs.
         </p>
       </div>
 
-      <div class="rounded-[30px] border border-white/10 bg-slate-900/70 p-6 shadow-xl shadow-black/20">
+      <div
+        class="rounded-[30px] border border-white/10 bg-slate-900/70 p-6 shadow-xl shadow-black/20"
+      >
         <h2 class="text-xl font-semibold text-white">How to use</h2>
         <ol class="mt-3 space-y-2 text-sm text-slate-300">
           <li>1. Go to the Home route.</li>
